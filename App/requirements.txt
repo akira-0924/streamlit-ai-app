@@ -1,0 +1,11 @@
+streamlit
+spleeter
+pathlib
+typing
+click
+ffmpeg-python
+requests
+Pillow
+scikit-image
+python-dotenv
+openai
