@@ -16,12 +16,12 @@ jobs:
 
       - name: docker image build
         run: |
-          cd app
+          cd App
           docker build -t ${{secrets.DOCKER_HUB_REPO}} .
 
       - name: docker hub push
         run: |
-          cd app
+          cd App
           docker push ${{secrets.DOCKER_HUB_REPO}}
 
   deploy:
