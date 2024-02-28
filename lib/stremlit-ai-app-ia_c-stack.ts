@@ -77,9 +77,12 @@ export class StreamlitAppStack extends cdk.Stack {
       "yum -y update",
       "yum -y install httpd",
       "yum -y install docker",
+      "sudo chmod 666 /var/run/docker.sock",
+      "sudo usermod -aG docker ec2-user",
       "sudo service docker start",
-      "usermod -a -G docker ec2-user",
-      `sudo docker pull akira0924/stremlit-app:test`,
+      "sudo systemctl start docker",
+      "sudo systemctl enable docker",
+      "sudo docker pull akira0924/stremlit-app:test",
       "sudo docker run -it -p 443:8501 akira0924/stremlit-app:test"
     );
 
