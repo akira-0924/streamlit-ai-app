@@ -53,6 +53,9 @@ jobs:
     # needs: build
 
     steps:
+      - name: check ls
+        run: ls
+
       - name: install cdk cli
         run: npm install
 
