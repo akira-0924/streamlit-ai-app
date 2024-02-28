@@ -39,8 +39,11 @@ jobs:
       - name: Display Current Directory
         run: pwd
 
+      - name: Display Current Directory ls
+        run: ls
+
       - name: Change Directory to /App
-        run: cd /App
+        run: cd App
 
       - name: Display Current Directory After Change
         run: pwd
