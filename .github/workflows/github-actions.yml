@@ -14,16 +14,13 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v2
 
-      - name: Display Current Directory
-        run: pwd
-
-      - name: Display Current Directory ls
-        run: ls
-
       - name: Change Directory to /app
         run: |
           cd App
           docker build -t ${{secrets.DOCKER_HUB_REPO}} .
+
+      - name: Checkout repository
+        run: docker push ${{secrets.DOCKER_HUB_REPO}}
 
   deploy:
     name: Deploy Job
