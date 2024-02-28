@@ -14,13 +14,15 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v2
 
-      - name: Change Directory to /app
+      - name: docker image build
         run: |
-          cd App
+          cd app
           docker build -t ${{secrets.DOCKER_HUB_REPO}} .
 
-      - name: Checkout repository
-        run: docker push ${{secrets.DOCKER_HUB_REPO}}
+      - name: docker hub push
+        run: |
+          cd app
+          docker push ${{secrets.DOCKER_HUB_REPO}}
 
   deploy:
     name: Deploy Job
@@ -36,14 +38,11 @@ jobs:
         with:
           node-version: "18"
 
-      - name: install cdk cli
+      - name: package install
         run: npm install
 
       - name: install cdk cli
         run: npm install -g aws-cdk
-
-      - name: Check CDK command
-        run: cdk --version
 
       - name: Configure AWS credentials
         run: |
