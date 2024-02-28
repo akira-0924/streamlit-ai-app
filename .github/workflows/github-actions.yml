@@ -53,14 +53,19 @@ jobs:
     # needs: build
 
     steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
       - name: check ls
         run: ls
 
+      - name: Set up Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: "18"
+
       - name: install cdk cli
         run: npm install
-
-      - name: Checkout repository
-        uses: actions/checkout@v2
 
       - name: install cdk cli
         run: npm install -g aws-cdk
