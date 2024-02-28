@@ -9,7 +9,7 @@
 
 ## インフラ構成図
 
-<img src="streamlit-ai-app-aws.drawio-complete.png" width="450px">
+<img src="images/streamlit-ai-app-aws.drawio-complete.png" width="450px">
 
 ## 環境構築
 
@@ -34,11 +34,11 @@ streamlit run main.py
 
 <img src="https://img.shields.io/badge/-Python-111111.svg?logo=python&style=#3178C6&logoColor=#3178C6" height="30px">
 
-<img src="https://img.shields.io/badge/-Streamlit-ffffff.svg?logo=streamlit&style={バッチのスタイル}&logoColor=#FF4B4B" height="30px">
+<img src="https://img.shields.io/badge/-Streamlit-111111.svg?logo=streamlit&style=plastic" height="30px">
 
 <img src="https://img.shields.io/badge/-Amazon AWS-111111.svg?logo=amazonaws&style=#412991&logoColor=#412991" height="30px">
 
-<img src="https://img.shields.io/badge/-Docker-ffffff.svg?logo=docker&style={バッチのスタイル}&logoColor=#2496ED" height="30px">
+<img src="https://img.shields.io/badge/-Docker-111111.svg?logo=docker&style=plastic" height="30px">
 
 <img src="https://img.shields.io/badge/-Github Actions-111111.svg?logo=githubactions&style=#3178C6&logoColor=#3178C6" height="30px">
 
