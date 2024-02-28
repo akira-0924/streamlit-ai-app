@@ -22,6 +22,7 @@ jobs:
       - name: docker hub push
         run: |
           cd App
+          docker login -u ${{secrets.DOCKER_USERNAME}} -p ${{secrets.DOCKER_PASSWORD}}
           docker push ${{secrets.DOCKER_HUB_REPO}}
 
   deploy:
