@@ -79,8 +79,8 @@ export class StreamlitAppStack extends cdk.Stack {
       "yum -y install docker",
       "sudo service docker start",
       "usermod -a -G docker ec2-user",
-      `sudo docker pull ${process.env.DOCKER_HUB_REPO}`,
-      `sudo docker run -it -p 443:8501 ${process.env.DOCKER_HUB_REPO}`
+      `sudo docker pull akira0924/stremlit-app:test`,
+      "sudo docker run -it -p 443:8501 akira0924/stremlit-app:test"
     );
 
     // //AmazonSSMFullAccessを付与したロールを作成(ハンズオン)
