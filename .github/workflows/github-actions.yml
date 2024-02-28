@@ -36,6 +36,15 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v2
 
+      - name: Display Current Directory
+        run: pwd
+
+      - name: Change Directory to /App
+        run: cd /App
+
+      - name: Display Current Directory After Change
+        run: pwd
+
       - name: Docker Image Build
         run: docker build -t ${{env.DOCKER_HUB_REPO}} /App
 
