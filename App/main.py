@@ -162,7 +162,7 @@ os.makedirs('generated_images', exist_ok=True)
 col_input, col_image = st.columns([1, 1])
 with col_input:
     # 基準画像の読み込み
-    groundtruth_path = 'base_image/isu.png'
+    groundtruth_path = 'base_image/shibuya.png'
     if os.path.exists(groundtruth_path):
         groundtruth_img = Image.open(groundtruth_path)
         # お題画像
