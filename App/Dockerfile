@@ -9,7 +9,7 @@ RUN pip install streamlit
 RUN pip install openai
 RUN pip install scikit-image
 RUN pip install python-dotenv
-
+RUN pip install boto3
 # COPY requirements.txt .
 
 # RUN apt-get update && \

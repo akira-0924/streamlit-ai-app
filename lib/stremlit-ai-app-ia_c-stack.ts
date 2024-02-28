@@ -17,6 +17,7 @@ import {
   UserData,
 } from "aws-cdk-lib/aws-ec2";
 import { Role, ServicePrincipal, ManagedPolicy } from "aws-cdk-lib/aws-iam";
+import * as s3 from "aws-cdk-lib/aws-s3";
 import * as dotenv from "dotenv";
 
 export class StreamlitAppStack extends cdk.Stack {
@@ -24,6 +25,13 @@ export class StreamlitAppStack extends cdk.Stack {
     super(scope, id, props);
 
     dotenv.config();
+
+    const bucket = new s3.Bucket(this, "ImageBucket", {
+      bucketName: "image-bucket-20240228",
+      versioned: true,
+      publicReadAccess: true,
+      blockPublicAccess: s3.BlockPublicAccess.BLOCK_ACLS,
+    });
 
     const vpc = new Vpc(this, "Vpc", {
       vpcName: `practice-vpc`,

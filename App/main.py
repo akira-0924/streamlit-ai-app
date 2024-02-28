@@ -137,6 +137,7 @@ from dotenv import load_dotenv
 import logging
 import pickle
 import time
+import boto3
 
 load_dotenv(verbose=True)
 
@@ -161,13 +162,19 @@ os.makedirs('generated_images', exist_ok=True)
 # 複数のプロンプト入力とボタンを設置
 col_input, col_image = st.columns([1, 1])
 with col_input:
-    # 基準画像の読み込み
-    groundtruth_path = 'base_image/shibuya.png'
-    if os.path.exists(groundtruth_path):
-        groundtruth_img = Image.open(groundtruth_path)
-        # お題画像
+
+    # groundtruth_path = 'base_image/shibuya.png'
+    s3_client = boto3.client('s3')
+    s3_object = s3_client.get_object(
+    Bucket='image-bucket-20240228', Key='theme.png')
+    image_data = BytesIO(s3_object['Body'].read())
+    if image_data.getvalue():
+        # 基準画像の読み込み
         st.header('お題')
-        st.image(groundtruth_img, width=500)
+        Image.open(image_data)
+        groundtruth_img = Image.open(image_data)
+        # お題画像
+        st.image(image_data, width=500)
         groundtruth_img = groundtruth_img.convert('L')  # グレースケールに変換
         groundtruth_img = groundtruth_img.resize((150, 150))
     else:
