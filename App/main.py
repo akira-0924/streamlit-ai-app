@@ -233,7 +233,15 @@ for i in range(RANGE):
 
             # OpenAI APIを使用して画像を生成
             try:
-                client = OpenAI(api_key=os.getenv('OPENAI_API_KEY'))
+                ssm = boto3.client('ssm', region_name='ap-northeast-1')
+                response = ssm.get_parameters(
+                    Names=[
+                        '/openapi/API_KEY',
+                    ],
+                    WithDecryption=True
+                )
+                ssm_api_key =  response['Parameters'][0]['Value']
+                client = OpenAI(api_key=ssm_api_key)
 
                 response = client.images.generate(
                     model="dall-e-3",

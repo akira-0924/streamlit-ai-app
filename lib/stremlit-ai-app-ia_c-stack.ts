@@ -54,101 +54,101 @@ export class StreamlitAppStack extends cdk.Stack {
         },
       ],
     });
-    // HTTPアクセス許可
-    const publicSecurityGroup = new SecurityGroup(this, "webSecurityGroup", {
-      vpc: vpc,
-      securityGroupName: "web-user1",
-    });
-    publicSecurityGroup.addIngressRule(
-      Peer.anyIpv4(),
-      Port.tcp(80),
-      "Allow HTTP traffic"
-    );
-    publicSecurityGroup.addIngressRule(
-      Peer.anyIpv4(),
-      Port.tcp(22),
-      "Allow SSH traffic"
-    );
-    publicSecurityGroup.addIngressRule(
-      Peer.anyIpv4(),
-      Port.tcp(443),
-      "Allow HTTPS traffic"
-    );
-    const startPort = 8501;
-    const endPort = 8510;
+    // // HTTPアクセス許可
+    // const publicSecurityGroup = new SecurityGroup(this, "webSecurityGroup", {
+    //   vpc: vpc,
+    //   securityGroupName: "web-user1",
+    // });
+    // publicSecurityGroup.addIngressRule(
+    //   Peer.anyIpv4(),
+    //   Port.tcp(80),
+    //   "Allow HTTP traffic"
+    // );
+    // publicSecurityGroup.addIngressRule(
+    //   Peer.anyIpv4(),
+    //   Port.tcp(22),
+    //   "Allow SSH traffic"
+    // );
+    // publicSecurityGroup.addIngressRule(
+    //   Peer.anyIpv4(),
+    //   Port.tcp(443),
+    //   "Allow HTTPS traffic"
+    // );
+    // const startPort = 8501;
+    // const endPort = 8510;
 
-    // ポート範囲内のポートに対してイングレスルールを設定
-    for (let port = startPort; port <= endPort; port++) {
-      publicSecurityGroup.addIngressRule(
-        Peer.anyIpv4(),
-        Port.tcp(port),
-        `Allow traffic on port ${port}`
-      );
-    }
+    // // ポート範囲内のポートに対してイングレスルールを設定
+    // for (let port = startPort; port <= endPort; port++) {
+    //   publicSecurityGroup.addIngressRule(
+    //     Peer.anyIpv4(),
+    //     Port.tcp(port),
+    //     `Allow traffic on port ${port}`
+    //   );
+    // }
 
-    // //ハンズオンで設定するWebサーバーのユーザーデータ
-    const userData = UserData.forLinux();
-    userData.addCommands(
-      "yum -y update",
-      "yum -y install httpd",
-      "yum -y install docker",
-      "sudo chmod 666 /var/run/docker.sock",
-      "sudo usermod -aG docker ec2-user",
-      "sudo service docker start",
-      "sudo systemctl start docker",
-      "sudo systemctl enable docker",
-      "sudo docker pull akira0924/stremlit-app:latest",
-      "sudo docker run -it -p 80:8501 akira0924/stremlit-app:latest"
-    );
+    // // //ハンズオンで設定するWebサーバーのユーザーデータ
+    // const userData = UserData.forLinux();
+    // userData.addCommands(
+    //   "yum -y update",
+    //   "yum -y install httpd",
+    //   "yum -y install docker",
+    //   "sudo chmod 666 /var/run/docker.sock",
+    //   "sudo usermod -aG docker ec2-user",
+    //   "sudo service docker start",
+    //   "sudo systemctl start docker",
+    //   "sudo systemctl enable docker",
+    //   "sudo docker pull akira0924/stremlit-app:latest",
+    //   "sudo docker run -it -p 80:8501 akira0924/stremlit-app:latest"
+    // );
 
-    // //AmazonSSMFullAccessを付与したロールを作成(ハンズオン)
-    const ec2Role = new Role(this, "ec2Role", {
-      assumedBy: new ServicePrincipal("ec2.amazonaws.com"),
-    });
-    ec2Role.addManagedPolicy(
-      ManagedPolicy.fromAwsManagedPolicyName("AmazonSSMFullAccess")
-    );
-    ec2Role.addManagedPolicy(
-      ManagedPolicy.fromAwsManagedPolicyName("AmazonS3FullAccess")
-    );
+    // // //AmazonSSMFullAccessを付与したロールを作成(ハンズオン)
+    // const ec2Role = new Role(this, "ec2Role", {
+    //   assumedBy: new ServicePrincipal("ec2.amazonaws.com"),
+    // });
+    // ec2Role.addManagedPolicy(
+    //   ManagedPolicy.fromAwsManagedPolicyName("AmazonSSMFullAccess")
+    // );
+    // ec2Role.addManagedPolicy(
+    //   ManagedPolicy.fromAwsManagedPolicyName("AmazonS3FullAccess")
+    // );
 
-    const createInstance = (
-      id: string,
-      name: string,
-      instanceClass: InstanceClass,
-      size: InstanceSize,
-      publicIp: boolean,
-      subnet: SubnetSelection,
-      securityGroup: SecurityGroup,
-      userData?: UserData
-    ): Instance => {
-      return new Instance(this, id, {
-        instanceName: name,
-        vpc,
-        vpcSubnets: subnet,
-        instanceType: InstanceType.of(instanceClass, size),
-        machineImage: new AmazonLinuxImage({
-          generation: AmazonLinuxGeneration.AMAZON_LINUX_2,
-        }),
-        securityGroup: securityGroup,
-        role: ec2Role,
-        associatePublicIpAddress: publicIp,
-        userData: userData,
-      });
-    };
+    // const createInstance = (
+    //   id: string,
+    //   name: string,
+    //   instanceClass: InstanceClass,
+    //   size: InstanceSize,
+    //   publicIp: boolean,
+    //   subnet: SubnetSelection,
+    //   securityGroup: SecurityGroup,
+    //   userData?: UserData
+    // ): Instance => {
+    //   return new Instance(this, id, {
+    //     instanceName: name,
+    //     vpc,
+    //     vpcSubnets: subnet,
+    //     instanceType: InstanceType.of(instanceClass, size),
+    //     machineImage: new AmazonLinuxImage({
+    //       generation: AmazonLinuxGeneration.AMAZON_LINUX_2,
+    //     }),
+    //     securityGroup: securityGroup,
+    //     role: ec2Role,
+    //     associatePublicIpAddress: publicIp,
+    //     userData: userData,
+    //   });
+    // };
 
-    const es2 = createInstance(
-      "Instance1",
-      "webserver-instance1",
-      InstanceClass.T2,
-      InstanceSize.MICRO,
-      true,
-      vpc.selectSubnets({
-        subnetType: SubnetType.PUBLIC,
-      }),
-      publicSecurityGroup,
-      userData
-    );
+    // const es2 = createInstance(
+    //   "Instance1",
+    //   "webserver-instance1",
+    //   InstanceClass.T2,
+    //   InstanceSize.MICRO,
+    //   true,
+    //   vpc.selectSubnets({
+    //     subnetType: SubnetType.PUBLIC,
+    //   }),
+    //   publicSecurityGroup,
+    //   userData
+    // );
 
     // const albSg = new SecurityGroup(this, "alb-sg", {
     //   vpc,

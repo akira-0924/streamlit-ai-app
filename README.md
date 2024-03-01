@@ -9,7 +9,7 @@
 
 ## インフラ構成図
 
-<img src="images/streamlit-ai-app-aws.drawio-complete.png" width="450px">
+<img src="images/stream-app-alb.drawio.png" width="650px">
 
 ## 環境構築
 
