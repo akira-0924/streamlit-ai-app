@@ -12,5 +12,15 @@ export class UploadStack extends cdk.Stack {
       parameterName: "/openapi/API_KEY",
       stringValue: `${process.env.OPENAI_API_KEY}`,
     });
+
+    new ssm.StringParameter(this, "parameter1", {
+      parameterName: "/S3/ENDPOINT",
+      stringValue: `${process.env.REACT_APP_S3_ENDPOINT}`,
+    });
+
+    new ssm.StringParameter(this, "parameter2", {
+      parameterName: "/API/ENDPOINT",
+      stringValue: `${process.env.REACT_APP_API_ENDPOINT}`,
+    });
   }
 }

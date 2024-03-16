@@ -1,6 +1,13 @@
 import * as cdk from "aws-cdk-lib";
 import { Construct } from "constructs";
 import {
+  CfnOutput,
+  RemovalPolicy,
+  Stack,
+  StackProps,
+  Duration,
+} from "aws-cdk-lib";
+import {
   IpAddresses,
   SubnetType,
   Vpc,
@@ -21,7 +28,10 @@ import * as s3 from "aws-cdk-lib/aws-s3";
 import * as route53 from "aws-cdk-lib/aws-route53";
 import * as elbv2 from "aws-cdk-lib/aws-elasticloadbalancingv2";
 import * as elbv2_tg from "aws-cdk-lib/aws-elasticloadbalancingv2-targets";
+import { Certificate } from "aws-cdk-lib/aws-certificatemanager";
 import * as dotenv from "dotenv";
+import * as cloudfront from "aws-cdk-lib/aws-cloudfront";
+import * as cloudfront_origins from "aws-cdk-lib/aws-cloudfront-origins";
 
 export class StreamlitAppStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
@@ -33,12 +43,61 @@ export class StreamlitAppStack extends cdk.Stack {
       zoneName: "m-ak-engineering.com",
     });
 
-    // const bucket = new s3.Bucket(this, "ImageBucket", {
-    //   bucketName: "image-bucket-20240228",
-    //   versioned: true,
-    //   publicReadAccess: true,
-    //   blockPublicAccess: s3.BlockPublicAccess.BLOCK_ACLS,
-    // });
+    const MyCertificate = Certificate.fromCertificateArn(
+      this,
+      "cocaCertificate",
+      `${process.env.US_EAST_1_ACM}`
+    );
+    const MyCertificateTokyo = Certificate.fromCertificateArn(
+      this,
+      "tokyoCertificate",
+      `${process.env.AP_NORTHEAST1_1_ACM}`
+    );
+
+    const spaBucket = new s3.Bucket(this, "jsonprod", {
+      bucketName: `spa-20240302`,
+      removalPolicy: RemovalPolicy.DESTROY,
+      blockPublicAccess: s3.BlockPublicAccess.BLOCK_ACLS,
+      publicReadAccess: true,
+      cors: [
+        {
+          allowedHeaders: ["*"],
+          allowedMethods: [s3.HttpMethods.GET, s3.HttpMethods.PUT],
+          allowedOrigins: ["*"],
+          exposedHeaders: [],
+        },
+      ],
+    });
+
+    new s3.Bucket(this, "imageBucket2", {
+      bucketName: `image-20240304`,
+      removalPolicy: RemovalPolicy.DESTROY,
+      blockPublicAccess: s3.BlockPublicAccess.BLOCK_ACLS,
+      publicReadAccess: true,
+      cors: [
+        {
+          allowedHeaders: ["*"],
+          allowedMethods: [s3.HttpMethods.GET, s3.HttpMethods.PUT],
+          allowedOrigins: ["*"],
+          exposedHeaders: [],
+        },
+      ],
+    });
+
+    new s3.Bucket(this, "jsonBucket", {
+      bucketName: `wordlist-json-20240306`,
+      removalPolicy: RemovalPolicy.DESTROY,
+      blockPublicAccess: s3.BlockPublicAccess.BLOCK_ACLS,
+      publicReadAccess: true,
+      cors: [
+        {
+          allowedHeaders: ["*"],
+          allowedMethods: [s3.HttpMethods.GET, s3.HttpMethods.PUT],
+          allowedOrigins: ["*"],
+          exposedHeaders: [],
+        },
+      ],
+    });
 
     const vpc = new Vpc(this, "Vpc", {
       vpcName: `practice-vpc`,
@@ -74,19 +133,8 @@ export class StreamlitAppStack extends cdk.Stack {
       Port.tcp(443),
       "Allow HTTPS traffic"
     );
-    const startPort = 8501;
-    const endPort = 8510;
 
-    // ポート範囲内のポートに対してイングレスルールを設定
-    for (let port = startPort; port <= endPort; port++) {
-      publicSecurityGroup.addIngressRule(
-        Peer.anyIpv4(),
-        Port.tcp(port),
-        `Allow traffic on port ${port}`
-      );
-    }
-
-    // //ハンズオンで設定するWebサーバーのユーザーデータ
+    //ハンズオンで設定するWebサーバーのユーザーデータ
     const userData = UserData.forLinux();
     userData.addCommands(
       "yum -y update",
@@ -96,9 +144,7 @@ export class StreamlitAppStack extends cdk.Stack {
       "sudo usermod -aG docker ec2-user",
       "sudo service docker start",
       "sudo systemctl start docker",
-      "sudo systemctl enable docker",
-      "sudo docker pull akira0924/stremlit-app:latest",
-      "sudo docker run -it -p 80:8501 akira0924/stremlit-app:latest"
+      "sudo systemctl enable docker"
     );
 
     // //AmazonSSMFullAccessを付与したロールを作成(ハンズオン)
@@ -150,34 +196,72 @@ export class StreamlitAppStack extends cdk.Stack {
       userData
     );
 
-    // const albSg = new SecurityGroup(this, "alb-sg", {
-    //   vpc,
-    //   allowAllOutbound: true,
-    //   description: "security group for a alb",
-    // });
-    // albSg.connections.allowInternally(Port.tcp(80));
+    //Application Load Balancer
+    const albSg = new SecurityGroup(this, "alb-sg", {
+      vpc,
+      allowAllOutbound: true,
+      description: "security group for a alb",
+    });
+    albSg.addIngressRule(Peer.anyIpv4(), Port.tcp(80), "Allow HTTP traffic");
+    albSg.addIngressRule(Peer.anyIpv4(), Port.tcp(443), "Allow HTTPS traffic");
+    albSg.addEgressRule(Peer.anyIpv4(), Port.tcp(80), "Allow HTTP traffic");
+    albSg.addEgressRule(Peer.anyIpv4(), Port.tcp(443), "Allow HTTPS traffic");
 
-    // ALB
-    // const alb = new elbv2.ApplicationLoadBalancer(this, "Alb", {
-    //   internetFacing: true,
-    //   vpc,
-    //   vpcSubnets: {
-    //     subnets: vpc.publicSubnets,
-    //   },
-    // });
-    // alb.addSecurityGroup(albSg);
+    const alb = new elbv2.ApplicationLoadBalancer(this, "Alb", {
+      internetFacing: true,
+      vpc,
+      vpcSubnets: {
+        subnets: vpc.publicSubnets,
+      },
+    });
+    alb.addSecurityGroup(albSg);
 
-    // const instanceTarget = new elbv2_tg.InstanceTarget(es2);
+    const instanceTarget = new elbv2_tg.InstanceTarget(es2);
 
-    // const albListener = alb.addListener("AlbHttpListener", {
-    //   port: 80,
-    //   protocol: elbv2.ApplicationProtocol.HTTP,
-    // });
-    // albListener.addTargets("WebServerTarget", {
-    //   targets: [instanceTarget],
-    //   port: 80,
-    // });
+    const albListener = alb.addListener("AlbHttpListener", {
+      port: 443,
+      protocol: elbv2.ApplicationProtocol.HTTPS,
+      certificates: [MyCertificateTokyo],
+    });
+    albListener.addTargets("WebServerTarget", {
+      targets: [instanceTarget],
+      port: 80,
+      protocol: elbv2.ApplicationProtocol.HTTP,
+    });
 
-    // const albTarget = new elbv2_tg.AlbTarget(alb, 80);
+    const albTarget = new elbv2_tg.AlbTarget(alb, 443);
+
+    const s3origin = new cloudfront_origins.S3Origin(spaBucket);
+    const albOrigin = new cloudfront_origins.LoadBalancerV2Origin(alb);
+
+    const errorResponse: cloudfront.ErrorResponse = {
+      httpStatus: 403,
+      responseHttpStatus: 403,
+      responsePagePath: "/",
+      ttl: Duration.minutes(20),
+    };
+
+    new cloudfront.Distribution(this, "prodDistribution", {
+      comment: "distribution.",
+      domainNames: ["ai-app.m-ak-engineering.com"],
+      certificate: MyCertificate,
+      errorResponses: [errorResponse],
+      //デフォルト設定
+      defaultRootObject: "index.html",
+      defaultBehavior: {
+        origin: s3origin,
+        allowedMethods: cloudfront.AllowedMethods.ALLOW_ALL,
+      },
+      additionalBehaviors: {
+        "/api/*": {
+          origin: albOrigin,
+          allowedMethods: cloudfront.AllowedMethods.ALLOW_ALL,
+        },
+        "/*": {
+          origin: s3origin,
+          allowedMethods: cloudfront.AllowedMethods.ALLOW_ALL,
+        },
+      },
+    });
   }
 }
